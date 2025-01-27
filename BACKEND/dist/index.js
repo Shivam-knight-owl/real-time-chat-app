@@ -63,6 +63,16 @@ function authenticate(req, res, next) {
 app.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, name, email, password } = req.body;
     const hashedPassword = yield bcrypt_1.default.hash(password, 10); // await used: it returns a promise that is resolved with the hashed password
+    //if a user with the same username already exists,return a message
+    const userExists = yield prisma.user.findUnique({ where: { username: req.body.username } });
+    if (userExists) {
+        return res.status(400).json({ message: "User with the same username already exists", alreadyUserExists: true, alreadyEmail: true });
+    }
+    //if a user with same email already exists,return a message
+    const emailExists = yield prisma.user.findUnique({ where: { email: req.body.email } });
+    if (emailExists) {
+        return res.status(400).json({ message: "User with the same email already exists", alreadyUserExists: false, alreadyEmail: true });
+    }
     const user = yield prisma.user.create({
         data: {
             username,
@@ -83,7 +93,7 @@ app.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const user = yield prisma.user.findUnique({ where: { username } }); // find the user with the given username
     try {
         if (!user || !(yield bcrypt_1.default.compare(password, user.password))) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "Invalid credentials", invalidCredentials: true });
         }
         // generate a JWT and store in cookie,set it as httpOnly cookie cookie automatically gets sent with every request to the server
         const token = jwt.sign({ userId: user.id }, JWT_SECRET); // creates a token with the user.id of the user as payload
@@ -92,7 +102,7 @@ app.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ message: "Error signing in user" });
+        res.status(500).json({ message: "Error signing in user", invalidCredentials: false });
     }
 }));
 //logout route
@@ -124,7 +134,7 @@ app.post("/addContact", authenticate, (req, res) => __awaiter(void 0, void 0, vo
         console.log(`Adding contact: ${contact_username} for user with userId: ${userId}`);
         const contact = yield prisma.user.findUnique({ where: { username: contact_username } }); //find the user with the given username B
         if (!contact) {
-            return res.status(404).json({ message: "User not found" }); //if user not found return 404
+            return res.status(404).json({ message: "User not found", found: false }); //if user not found return 404
         }
         //update A and add B to the contacts list of A and also add A to the contacts list of B
         const user = yield prisma.user.update({
@@ -148,7 +158,7 @@ app.post("/addContact", authenticate, (req, res) => __awaiter(void 0, void 0, vo
                 }
             }
         });
-        res.status(200).json({ message: "Contact added successfully", contacts: { "contactuserId": contactUser.id, "contactName": contactUser.username } });
+        res.status(200).json({ message: "Contact added successfully", contacts: { "contactuserId": contactUser.id, "contactName": contactUser.username }, found: true });
     }
     catch (err) {
         console.log(err);
@@ -158,8 +168,11 @@ app.post("/addContact", authenticate, (req, res) => __awaiter(void 0, void 0, vo
 //Send message route:msg saved in db for past messages(done here) and emittion of msg to socket.io server for real time messaging(done below)
 app.post("/sendMessage", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req.body);
         const { receiver, msg } = req.body;
         const senderId = req.body.userId; //extract the sender's userId from the request body which was added by the authenticate middleware
+        console.log("full req.body", req.body);
+        console.log("Receiver username from req.body:", receiver);
         const receiverUser = yield prisma.user.findUnique({ where: { username: receiver } }); //find the user with the given username
         if (!receiverUser) {
             return res.status(404).json({ message: "User not found" }); //if user not found return 404
@@ -172,7 +185,23 @@ app.post("/sendMessage", authenticate, (req, res) => __awaiter(void 0, void 0, v
                 receiverId: receiverUser.id,
             }
         });
-        res.status(200).json({ message: "Message sent successfully", data: message });
+        //fetch sender details to include in response
+        const senderUser = yield prisma.user.findUnique({ where: { id: senderId } });
+        //detailed message object to be sent to the client in response
+        const messageDetails = {
+            messageId: message.id,
+            text: message.text,
+            sender: {
+                id: senderUser === null || senderUser === void 0 ? void 0 : senderUser.id,
+                username: senderUser === null || senderUser === void 0 ? void 0 : senderUser.username
+            },
+            receiver: {
+                id: receiverUser.id,
+                username: receiverUser.username
+            },
+            timestamp: message.createdAt,
+        };
+        res.status(200).json({ message: "Message sent successfully", data: messageDetails });
     }
     catch (err) {
         console.log(err);
@@ -185,7 +214,7 @@ app.get("/contacts", authenticate, (req, res) => __awaiter(void 0, void 0, void 
         const userId = req.body.userId; //extract the userId from the request body which was added by the authenticate middleware
         const user = yield prisma.user.findUnique({ where: { id: userId } }); //find the user with the given userId
         const contacts = yield prisma.user.findUnique({ where: { id: userId } }).contacts(); //find all contacts of the user
-        res.status(200).json({ "contacts": contacts === null || contacts === void 0 ? void 0 : contacts.map((contact) => { return { contactuserId: contact.id, contactName: contact.username }; }) });
+        res.status(200).json({ "contacts": contacts === null || contacts === void 0 ? void 0 : contacts.map((contact) => { return { contactuserId: contact.id, contactName: contact.username }; }) }); //we return the contacts as an array of objects with contactuserId and contactName
     }
     catch (err) {
         console.log(err);
@@ -216,7 +245,22 @@ app.get("/messages/:contact_username", authenticate, (req, res) => __awaiter(voi
                 ]
             }
         });
-        res.status(200).json({ message: "Messages fetched successfully", messages: messages.map((msg) => { return msg.text; }) });
+        //we want details of message to be sent to the client in response
+        res.status(200).json({ messages: messages.map((msg) => {
+                return {
+                    messageId: msg.id,
+                    text: msg.text,
+                    sender: {
+                        id: msg.senderId,
+                        username: msg.senderId === userId ? "You" : contact_username
+                    },
+                    receiver: {
+                        id: msg.receiverId,
+                        username: msg.receiverId === userId ? "You" : contact_username
+                    },
+                    timestamp: msg.createdAt
+                }; // we send a single object with messages as key and value as array of objects which have messageId,text,sender,receiver,timestamp
+            }) });
     }
     catch (err) {
         console.log(err);
@@ -259,9 +303,42 @@ io.on("connection", (socket) => {
         //real time messaging
         socket.on("message", (data) => __awaiter(void 0, void 0, void 0, function* () {
             console.log(data, socket.data);
-            const { msg } = data;
             console.log(userMap);
-            io.to([userMap.get(data.receiver) || "", userMap.get(socket.data.user) || ""]).emit("message", msg);
+            const { receiver, msg } = data;
+            const receiverUser = yield prisma.user.findUnique({ where: { username: receiver } }); //find the user with the given username
+            if (!receiverUser) {
+                return; //if user not found return
+            }
+            const senderId = socket.data.user; //extract the sender's userId from the socket object
+            const senderUser = yield prisma.user.findUnique({ where: { id: senderId } }); //find the user with the given userId
+            // Prepare the message details to be sent
+            const messageDetailsForSender = {
+                text: msg,
+                sender: {
+                    id: senderUser === null || senderUser === void 0 ? void 0 : senderUser.id,
+                    username: "You", // Sender sees "You" for themselves
+                },
+                receiver: {
+                    id: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.id,
+                    username: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.username, // Receiver's actual username
+                },
+                timestamp: new Date(),
+            };
+            const messageDetailsForReceiver = {
+                text: msg,
+                sender: {
+                    id: senderUser === null || senderUser === void 0 ? void 0 : senderUser.id,
+                    username: senderUser === null || senderUser === void 0 ? void 0 : senderUser.username, // Sender's actual username
+                },
+                receiver: {
+                    id: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.id,
+                    username: "You", // Receiver sees "You" for themselves
+                },
+                timestamp: new Date(),
+            };
+            // Emit the message details
+            io.to(userMap.get(receiverUser.id) || "").emit("message", messageDetailsForReceiver); // Send to the receiver
+            io.to(userMap.get(senderId) || "").emit("message", messageDetailsForSender); // Send to the sender
         }));
     }
     catch (err) {
