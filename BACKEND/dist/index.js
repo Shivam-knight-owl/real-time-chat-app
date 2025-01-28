@@ -26,7 +26,7 @@ const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
 app.use((0, cors_1.default)({
     origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(express_1.default.json()); //middleware to parse json
@@ -168,7 +168,7 @@ app.post("/addContact", authenticate, (req, res) => __awaiter(void 0, void 0, vo
 //Send message route:msg saved in db for past messages(done here) and emittion of msg to socket.io server for real time messaging(done below)
 app.post("/sendMessage", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body);
+        // console.log(req.body);
         const { receiver, msg } = req.body;
         const senderId = req.body.userId; //extract the sender's userId from the request body which was added by the authenticate middleware
         console.log("full req.body", req.body);
@@ -267,6 +267,28 @@ app.get("/messages/:contact_username", authenticate, (req, res) => __awaiter(voi
         res.status(500).json({ message: "Error fetching messages..." });
     }
 }));
+// Delete message route body from frontend will have the msgId to be deleted
+app.delete("/deleteMessage", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { msgId } = req.body; //extract the msgId from the request body
+        const userId = req.body.userId; //extract the userId from the request body which was added by the authenticate middleware
+        const message = yield prisma.message.findUnique({ where: { id: msgId } }); //find the message with the given msgId
+        if (!message) {
+            return res.status(404).json({ message: "Message not found" }); //if message not found return 404
+        }
+        //check if the user is the sender of the message and only then allow to delete the message
+        if (message.senderId !== userId) {
+            return res.status(401).json({ message: "Unauthorised to delete the message" }); //if the user is not the sender of the message,return 401
+        }
+        //delete the message
+        yield prisma.message.delete({ where: { id: msgId } });
+        res.status(200).json({ message: "Message deleted successfully" });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Error deleting message" });
+    }
+}));
 //creating userMap to store active users
 const userMap = new Map(); // to store active users
 //middleware for authenticating the user in socket.io 
@@ -295,6 +317,7 @@ io.on("connection", (socket) => {
         const userId = decoded.userId; //extract the userId from the decoded token
         //Add the user to the userMap which stores the active users
         userMap.set(userId, socket.id);
+        console.log("active usersMap", userMap);
         //to handle disconnection
         socket.on("disconnect", () => {
             console.log("User disconnected");
@@ -304,41 +327,58 @@ io.on("connection", (socket) => {
         socket.on("message", (data) => __awaiter(void 0, void 0, void 0, function* () {
             console.log(data, socket.data);
             console.log(userMap);
-            const { receiver, msg } = data;
-            const receiverUser = yield prisma.user.findUnique({ where: { username: receiver } }); //find the user with the given username
-            if (!receiverUser) {
-                return; //if user not found return
-            }
-            const senderId = socket.data.user; //extract the sender's userId from the socket object
-            const senderUser = yield prisma.user.findUnique({ where: { id: senderId } }); //find the user with the given userId
+            const { receiver, msg, msgId, sender } = data;
+            // const receiverUser=await prisma.user.findUnique({where:{username:receiver}});//find the user with the given username
+            // if(!receiverUser){
+            //     return;//if user not found return
+            // }
+            // const senderId=socket.data.user;//extract the sender's userId from the socket object
+            // const senderUser=await prisma.user.findUnique({where:{id:senderId}});//find the user with the given userId
             // Prepare the message details to be sent
             const messageDetailsForSender = {
+                messageId: msgId,
                 text: msg,
                 sender: {
-                    id: senderUser === null || senderUser === void 0 ? void 0 : senderUser.id,
+                    id: sender === null || sender === void 0 ? void 0 : sender.id,
                     username: "You", // Sender sees "You" for themselves
                 },
                 receiver: {
-                    id: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.id,
-                    username: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.username, // Receiver's actual username
+                    id: receiver === null || receiver === void 0 ? void 0 : receiver.id,
+                    username: receiver === null || receiver === void 0 ? void 0 : receiver.username, // Receiver's actual username
                 },
                 timestamp: new Date(),
             };
             const messageDetailsForReceiver = {
+                messageId: msgId,
                 text: msg,
                 sender: {
-                    id: senderUser === null || senderUser === void 0 ? void 0 : senderUser.id,
-                    username: senderUser === null || senderUser === void 0 ? void 0 : senderUser.username, // Sender's actual username
+                    id: sender === null || sender === void 0 ? void 0 : sender.id,
+                    username: sender === null || sender === void 0 ? void 0 : sender.username, // Sender's actual username
                 },
                 receiver: {
-                    id: receiverUser === null || receiverUser === void 0 ? void 0 : receiverUser.id,
+                    id: receiver === null || receiver === void 0 ? void 0 : receiver.id,
                     username: "You", // Receiver sees "You" for themselves
                 },
                 timestamp: new Date(),
             };
             // Emit the message details
-            io.to(userMap.get(receiverUser.id) || "").emit("message", messageDetailsForReceiver); // Send to the receiver
-            io.to(userMap.get(senderId) || "").emit("message", messageDetailsForSender); // Send to the sender
+            io.to(userMap.get(receiver.id) || "").emit("message", messageDetailsForReceiver); // Send to the receiver
+            io.to(userMap.get(sender.id) || "").emit("message", messageDetailsForSender); // Send to the sender
+        }));
+        //real time message deletion
+        socket.on("deleteMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log(data);
+            const { msgId } = data;
+            //finding the receiverId of the message to send the delete message event to the receiver in one db call
+            const message = yield prisma.message.findUnique({
+                where: { id: msgId },
+                select: {
+                    receiverId: true
+                }
+            });
+            if (message) {
+                socket.to(userMap.get(message.receiverId) || "").emit("deleteMessage", msgId); // emit the delete message event to the receiver
+            }
         }));
     }
     catch (err) {

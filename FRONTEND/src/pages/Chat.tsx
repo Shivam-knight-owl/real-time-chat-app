@@ -13,7 +13,7 @@ const Chat = ({}: ChatProps) => {
 
     const [currentChat,setCurrentChat]=useState(null);//store the current chat with the user
 
-    const[contacts,setContacts]=useState<any[]>([]);//store the contacts array of the user//this was earlier in ContactList component but we moved it here since we need to pass the setContacts fn to ContactList component as well as addContact component t setContacts for real time update of contacts
+    const[contacts,setContacts]=useState<any[]>([]);//store the contacts array of the user//this was earlier in ContactList component but we moved it here since we need to pass the setContacts fn to ContactList component as well as addContact component to setContacts for real time update of contacts
 
     useEffect(()=>{
 
@@ -58,7 +58,7 @@ const Chat = ({}: ChatProps) => {
                     <ChatWindow currentChat={currentChat} socket={socket} />
                 ) : (
                     <div className="flex items-center justify-center h-full">
-                        <div className="text-lg text-gray-800 font-semibold">
+                        <div className="text-md text-gray-800 font-semibold">
                             Select a contact to start chatting.
                         </div>
                     </div>

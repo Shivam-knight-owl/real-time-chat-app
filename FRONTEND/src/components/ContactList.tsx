@@ -7,18 +7,23 @@ interface ContactListProps {
 }
 
 const ContactList = ({ onSelectingContact,setContacts,contacts }: ContactListProps) => { 
-    
+
     useEffect(()=>{
-        fetch("http://localhost:3000/contacts",{
-            method:"GET",
-            headers:{
-                "Content-Type":"application/json",
-            },
-            credentials:"include",//send the cookies to the server
-            }).then((res)=>res.json()).then((data)=>{
-                console.log("Contacts fetched",data);
-                setContacts(data.contacts);//update the contacts array with the fetched contacts
-            })
+        try{
+         
+            fetch("http://localhost:3000/contacts",{
+                method:"GET",
+                headers:{
+                    "Content-Type":"application/json",
+                },
+                credentials:"include",//send the cookies to the server
+                }).then((res)=>res.json()).then((data)=>{
+                    console.log("Contacts fetched",data);
+                    setContacts(data.contacts);//update the contacts array with the fetched contacts
+            });
+        }catch(err){
+            console.log("Error fetching contacts",err);
+        }
     },[]);
 
     // Helper function to extract first letter from contactName

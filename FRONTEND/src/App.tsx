@@ -11,7 +11,7 @@ import { useLocation } from 'react-router-dom';
 // Importing toastify module
 // import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from 'react-toastify';
+import {  ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
 
 function App() {
@@ -54,12 +54,14 @@ function App() {
         console.error("Error fetching user details:",err);
         setUser(null);//set the user state to null if there is an error
       }
+      // finally{
+      //   setLoading(false);//set loading to false once the user is fetched
+      // }
     },[]);//empty arr as second arg means this effect will only run once when it first mounts
     
     if (loading) {
       return <div>Loading...</div>; // Loading screen while checking authentication
     }
-
     return (
       <>
       {/* we send setUser in all navbar,signup,signin component to set the user on logout,signup,signin so that protected route /chat can be visited on authentication */}

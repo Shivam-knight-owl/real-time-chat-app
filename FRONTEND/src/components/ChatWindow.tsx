@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { FaTelegramPlane } from "react-icons/fa";
+import { FaTelegramPlane,FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 interface ChatWindowProps {
     currentChat: any; // Replace 'any' with the appropriate type
@@ -37,12 +38,20 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
 
         // Listen for incoming messages from socket (real-time)
         socket.current?.on("message", (newMessage: any) => {
+            console.log("Message received", newMessage);
             setMessages((prevMessages) => [...prevMessages, newMessage]); // Update state with the new message from socket
         });
 
+        //Listen for delete message event from socket.io server
+        socket.current?.on("deleteMessage",(msgId:string)=>{
+            console.log("Delete Message Received",msgId);
+            setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgId));//filter the messages array to remove the deleted message
+        })
+
         return () => {
-            socket.current?.off("message"); // Cleanup listener on unmount
+            socket.current?.off("message"); // Cleanup listener on unmount what it does is it removes the listener for the message event when the component is unmounted
         };
+
     }, [currentChat, socket]); // Fetch messages and listen to socket updates whenever `currentChat` or `socket` changes
 
     const handleSendMessage = () => {
@@ -65,14 +74,19 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
             })
                 .then((res) => res.json())
                 .then((data) => {
-                    console.log("Message sent:", data);
+                    console.log("Message sent:", data.data.messageId);
+
+                    socket.current?.emit("message",{receiver:data.data.receiver,msg:data.data.text,msgId:data.data.messageId,sender:data.data.sender});//emit the message to the socket.io server
+
+                    // socket.current?.emit("message", {receiver: currentChat.contactName,msg: message,msgId:data.data.messageId}); // Emit the message to the socket for real-time updates from below to up to send the msg id as well for deletion handling
+                    // as now we have moved the emit to the .then block now we can also send the sender and receiver details from here only to the socket.io server that saves our db calls that we are doing in socket.io server backend code for getting the sender and receiver details
                 });
         } catch (err) {
             console.log("Error sending message", err);
         }
 
-        // Emit the message to the socket for real-time updates
-        socket.current?.emit("message", { receiver: currentChat.contactName, msg: message });
+        // Emit the message to the socket for real-time updates // to get the msgId in real time and send to socket.io server for delete msg handling we need to move this up to .then block so that we can get the msgId
+        // socket.current?.emit("message", { receiver: currentChat.contactName, msg: message });
 
         setMessage(""); // Clear the message input box
 
@@ -84,6 +98,33 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    //Delete message
+    const handleDeleteMessage=(msgid:string)=>{
+        try{
+            fetch("http://localhost:3000/deleteMessage",{
+                method:"DELETE",
+                headers:{
+                    "Content-Type":"application/json",
+                },
+                credentials:"include",
+                body:JSON.stringify({msgId:msgid}),
+            }).then((res)=>res.json()).then((data)=>{
+                console.log("Delete Message Response",data);
+
+                toast.success("Message Deleted Successfully",{position:"top-center",autoClose:3000});
+
+                setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message
+            });
+
+            socket.current?.emit("deleteMessage",{msgId:msgid});//emit the delete message event to the socket.io server
+
+            // setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message
+
+        }catch(err){
+            console.log("Error deleting message",err);
+        }
+    }
 
     return (
         <div className="flex flex-col h-full bg-white shadow-lg rounded-lg p-6">
@@ -97,23 +138,36 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
                 {messages.map((msg: any, index: number) => (
                     <div
                         key={index}
-                        className={`p-3 rounded-lg max-w-xs shadow-md ${
+                        className={`relative p-3 rounded-lg max-w-xs shadow-md ${
                             msg.sender.username === "You"
                                 ? "bg-gradient-to-r from-[#814bff] to-[#411caf] text-white ml-auto"
                                 : "bg-gray-200 text-gray-800"
                         }`}
                     >
                         <p className="text-sm font-semibold">{msg.sender.username}</p>
-                        <p className="text-sm">{msg.text}</p>
+                        <p className="text-md mb-4">{msg.text}</p>
                         {msg.sender.username === "You" ? (
-                            <p className="text-xs font-light italic mt-1 text-white">
+                            <p className="text-xs font-light italic mt-1 text-white absolute bottom-2 right-2">
                                 {new Date(msg.timestamp).toLocaleString()}
                             </p>
                         ) : (
-                            <p className="text-xs font-light italic mt-1 text-gray-700">
+                            <p className="text-xs font-light italic mt-1 text-gray-700 absolute bottom-2 right-2">
                                 {new Date(msg.timestamp).toLocaleString()}
                             </p>
                         )}
+                         
+                        {/* <p className="text-sm">{msg.messageId}</p>  */}
+
+                        {/* Delete msg button*/}
+                        {/* pass the msg.id */}
+                        {/* only show the delete button option to sender of the message */}
+                        {msg.sender.username==="You" &&
+                        <button onClick={()=>handleDeleteMessage(msg.messageId)} 
+                        className="absolute flex items-center top-2 right-2 px-2 py-1 text-xs bg-[#ffffff] text-[#814bff]  rounded-sm  hover:bg-black border-0 hover:text-white transition-all cursor-pointer  space-x-1">
+                            <span>Delete</span>
+                            <FaTrash size={14}/>
+                        </button>
+            }
                     </div>
                 ))}
 
