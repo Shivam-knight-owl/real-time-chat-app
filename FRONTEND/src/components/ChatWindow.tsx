@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { FaTelegramPlane,FaTrash } from "react-icons/fa";
+import { FaSmile, FaTelegramPlane,FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
+import EmojiPicker from "emoji-picker-react";
 
 interface ChatWindowProps {
     currentChat: any; // Replace 'any' with the appropriate type
@@ -10,6 +11,8 @@ interface ChatWindowProps {
 const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
     const [messages, setMessages] = useState<any[]>([]);
     const [message, setMessage] = useState<string>("");
+
+    const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);//state to show or hide the emoji picker
 
     // Reference to the messages container to control scroll
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -126,6 +129,11 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
         }
     }
 
+    //Handle Emoji Click
+    const handleEmojiClick=(emojiObject: any)=>{
+        setMessage(message+emojiObject.emoji);//append the emoji to the message input
+    }
+
     return (
         <div className="flex flex-col h-full bg-white shadow-lg rounded-lg p-6">
             {/* Chat Header */}
@@ -177,6 +185,20 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
 
             {/* Input Field */}
             <div className="flex items-center space-x-3 mt-4">
+                {/* Emoji picker toggle btn */}
+                <button onClick={()=>{
+                    setShowEmojiPicker(!showEmojiPicker);//toggle the state to show or hide the emoji picker
+                }} className="text-[#814bff] hover:text-[#411caf] focus:outline-none cursor-pointer">
+                    <FaSmile size={30}/>
+                    {/* <FaSmileWink size={30}/> */}
+                </button>
+
+                {/* Emoji Picker Dropdown */}
+                {showEmojiPicker && (
+                    <div>
+                        <EmojiPicker onEmojiClick={handleEmojiClick}></EmojiPicker>
+                    </div>
+                )}
                 <input
                     type="text"
                     placeholder="Type a message..."
