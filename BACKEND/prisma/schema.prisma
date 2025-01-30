@@ -16,8 +16,8 @@ model User {
   createdAt        DateTime  @default(now())
   receivedMessages Message[] @relation("Receiver")
   sentMessages     Message[] @relation("Sender")
-  User_A           User[]    @relation("UserFriends")
-  User_B           User[]    @relation("UserFriends")
+  contacts User[] @relation("UserFriends")
+  friends  User[] @relation("UserFriends")
 }
 
 model Message {

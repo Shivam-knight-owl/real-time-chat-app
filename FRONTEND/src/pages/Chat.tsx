@@ -1,61 +1,74 @@
-import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
+// import { io } from "socket.io-client";
 import AddContact from "../components/AddContact";
 import ChatWindow from "../components/ChatWindow";
 import ContactList from "../components/ContactList";
-
+import { FiMenu } from "react-icons/fi";
+import {socket} from "../socket";
 interface ChatProps {
-    user: any; // Replace 'any' with the appropriate type if known
+    user: any;
 }
 
-const Chat = ({}: ChatProps) => {
-    const socket = useRef<ReturnType<typeof io> | null>(null); //socket connection to the server is stored in this ref variable
+const Chat = ({ user }: ChatProps) => {
+    // const socket = useRef<ReturnType<typeof io> | null>(null);
+    const [currentChat, setCurrentChat] = useState(null);
+    const [contacts, setContacts] = useState<any[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar toggle state
 
-    const [currentChat,setCurrentChat]=useState(null);//store the current chat with the user
-
-    const[contacts,setContacts]=useState<any[]>([]);//store the contacts array of the user//this was earlier in ContactList component but we moved it here since we need to pass the setContacts fn to ContactList component as well as addContact component to setContacts for real time update of contacts
-
-    useEffect(()=>{
-
-        //initialize the socket connection
-        socket.current=io("http://localhost:3000",{
-            withCredentials:true,//send the cookies to the server
-            transports:["websocket"],//use websocket protocol
-        });
-
-        socket.current?.on("connect",()=>{
-            console.log("connected to the socket.io server");
-        });
-        
-        //cleanup the socket connection when the component is unmounted since if we don't do this,old socket connection will remain open and new socket connection will be created when the component is mounted again
-
-        return ()=>{
-            socket.current?.disconnect();//disconnect the socket connection
+    useEffect(() => {
+        // socket.current = io("http://localhost:3000", {
+        //     withCredentials: true,
+        // });
+        if (!socket.connected) {
+            socket.connect(); // Ensure socket connection
+        }
+        if (socket.connected) {
+            console.log("Socket is already connected");
+        } else {
+            socket.on("connect", () => {
+                console.log("Connected to the socket.io server");
+            });
         }
 
-    },[]);
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
 
-   return (
+    return (
         <div className="flex h-[calc(100vh-4rem)]">
             {/* Sidebar */}
-            <div className="w-1/4 bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col">
-
-                <div className="flex-shrink-0">
-                    <AddContact setContacts={setContacts} />
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                    <ContactList
-                        onSelectingContact={setCurrentChat}
-                        setContacts={setContacts}
-                        contacts={contacts}
-                    />
-                </div>
+            <div className={`bg-gradient-to-b from-gray-900 to-gray-800 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-1/4" : "w-0 overflow-hidden"}`}>
+                {isSidebarOpen && (
+                    <div className="flex flex-col h-full">
+                        {/* Add Contact */}
+                        <div className="flex-shrink-0">
+                            <AddContact setContacts={setContacts}  user={user} />
+                        </div>
+                        {/* Contact List - Ensures Full Height Usage */}
+                        <div className="flex-grow overflow-y-auto">
+                            <ContactList
+                                onSelectingContact={setCurrentChat}
+                                setContacts={setContacts}
+                                contacts={contacts}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-gray-100 flex flex-col">
+            <div className="flex-1 bg-gray-100 flex flex-col relative">
+                {/* Sidebar Toggle Button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="absolute left-2 top-5 bg-[#814bff] text-white p-2 rounded-md shadow-md focus:outline-none cursor-pointer"
+                >
+                    <FiMenu size={20} />
+                </button>
+
                 {currentChat ? (
-                    <ChatWindow currentChat={currentChat} socket={socket} />
+                    <ChatWindow currentChat={currentChat}  />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-md text-gray-800 font-semibold">

@@ -129,31 +129,39 @@ app.get("/me", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, fun
 //add contact/friend route
 app.post("/addContact", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { contact_username } = req.body; //extract the contact username i.e B from the request body
-        const userId = req.body.userId; //extract the userId of A from the request body which was added by the authenticate middleware
+        const { contact_username } = req.body; // extract the contact username i.e B from the request body
+        const userId = req.body.userId; // extract the userId of A from the request body which was added by the authenticate middleware
         console.log(`Adding contact: ${contact_username} for user with userId: ${userId}`);
-        const contact = yield prisma.user.findUnique({ where: { username: contact_username } }); //find the user with the given username B
+        const contact = yield prisma.user.findUnique({ where: { username: contact_username } }); // find the user with the given username B
         if (!contact) {
-            return res.status(404).json({ message: "User not found", found: false }); //if user not found return 404
+            return res.status(404).json({ message: "User not found", found: false }); // if user not found return 404
         }
-        //update A and add B to the contacts list of A and also add A to the contacts list of B
-        const user = yield prisma.user.update({
+        // Check if contact is already added in contact list of A
+        const user = yield prisma.user.findUnique({
+            where: { id: userId },
+            include: { contacts: true }
+        });
+        if (user === null || user === void 0 ? void 0 : user.contacts.find((c) => c.id === contact.id)) {
+            return res.status(400).json({ message: "Contact already added", contacts: { "contactuserId": contact.id, "contactName": contact.username }, found: true });
+        }
+        // update A and add B to the contacts list of A
+        yield prisma.user.update({
             where: { id: userId },
             data: {
                 contacts: {
                     connect: {
-                        id: contact.id //add B to the contacts list of A
+                        id: contact.id // add B to the contacts list of A
                     }
                 }
             }
         });
-        //update B and add A to the contacts list of B
+        // update B and add A to the contacts list of B
         const contactUser = yield prisma.user.update({
             where: { id: contact.id },
             data: {
                 contacts: {
                     connect: {
-                        id: user.id //add A to the contacts list of B
+                        id: userId // add A to the contacts list of B
                     }
                 }
             }
@@ -289,6 +297,19 @@ app.delete("/deleteMessage", authenticate, (req, res) => __awaiter(void 0, void 
         res.status(500).json({ message: "Error deleting message" });
     }
 }));
+// delete a user account route
+app.delete("/deleteUser", authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.body.userId; //extract the userId from the request body which was added by the authenticate middleware
+        //delete the user account
+        yield prisma.user.delete({ where: { id: userId } });
+        res.status(200).json({ message: "User account deleted successfully" });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Error deleting user account" });
+    }
+}));
 //creating userMap to store active users
 const userMap = new Map(); // to store active users
 //middleware for authenticating the user in socket.io 
@@ -321,7 +342,8 @@ io.on("connection", (socket) => {
         //to handle disconnection
         socket.on("disconnect", () => {
             console.log("User disconnected");
-            userMap.delete(socket.data.userId); //remove the user from the userMap on disconnection
+            userMap.delete(socket.data.user); //remove the user from the userMap on disconnection
+            console.log("active usersMap after disconnections:", userMap);
         });
         //real time messaging
         socket.on("message", (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -377,8 +399,18 @@ io.on("connection", (socket) => {
                 }
             });
             if (message) {
-                socket.to(userMap.get(message.receiverId) || "").emit("deleteMessage", msgId); // emit the delete message event to the receiver
+                io.to(userMap.get(message.receiverId) || "").emit("deleteMessage", msgId); // emit the delete message event to the receiver
             }
+        }));
+        //real time add contact event
+        socket.on("addedContact", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log(data);
+            const { contact } = data;
+            //we want both id and name of sender user who added the contact to be sent to the receiver/contact
+            //for that we want both id and username of the sender user i.e the current user who added the contact
+            const senderId = socket.data.user; //extract the sender's userId from the socket object
+            const senderUser = yield prisma.user.findUnique({ where: { id: senderId } }); //find the user with the given userId
+            io.to(userMap.get(contact.contactuserId) || "").emit("addedContact", { sender: { contactUserId: senderId, contactName: senderUser === null || senderUser === void 0 ? void 0 : senderUser.username } }); //emit the addedContact event to the receiver contact
         }));
     }
     catch (err) {

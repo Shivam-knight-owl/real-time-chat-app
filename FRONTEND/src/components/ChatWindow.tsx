@@ -2,13 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { FaSmile, FaTelegramPlane,FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
-
+import  {socket} from "../socket";  
 interface ChatWindowProps {
     currentChat: any; // Replace 'any' with the appropriate type
-    socket: any; // Replace 'any' with the appropriate type
+    // socket: any; // Replace 'any' with the appropriate type
 }
 
-const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
+const ChatWindow = ({ currentChat }: ChatWindowProps) => {
     const [messages, setMessages] = useState<any[]>([]);
     const [message, setMessage] = useState<string>("");
 
@@ -40,19 +40,19 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
             });
 
         // Listen for incoming messages from socket (real-time)
-        socket.current?.on("message", (newMessage: any) => {
+        socket.on("message", (newMessage: any) => {
             console.log("Message received", newMessage);
             setMessages((prevMessages) => [...prevMessages, newMessage]); // Update state with the new message from socket
         });
 
         //Listen for delete message event from socket.io server
-        socket.current?.on("deleteMessage",(msgId:string)=>{
+        socket.on("deleteMessage",(msgId:string)=>{
             console.log("Delete Message Received",msgId);
             setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgId));//filter the messages array to remove the deleted message
         })
 
         return () => {
-            socket.current?.off("message"); // Cleanup listener on unmount what it does is it removes the listener for the message event when the component is unmounted
+            socket.off("message"); // Cleanup listener on unmount what it does is it removes the listener for the message event when the component is unmounted
         };
 
     }, [currentChat, socket]); // Fetch messages and listen to socket updates whenever `currentChat` or `socket` changes
@@ -79,7 +79,7 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
                 .then((data) => {
                     console.log("Message sent:", data.data.messageId);
 
-                    socket.current?.emit("message",{receiver:data.data.receiver,msg:data.data.text,msgId:data.data.messageId,sender:data.data.sender});//emit the message to the socket.io server
+                    socket.emit("message",{receiver:data.data.receiver,msg:data.data.text,msgId:data.data.messageId,sender:data.data.sender});//emit the message to the socket.io server
 
                     // socket.current?.emit("message", {receiver: currentChat.contactName,msg: message,msgId:data.data.messageId}); // Emit the message to the socket for real-time updates from below to up to send the msg id as well for deletion handling
                     // as now we have moved the emit to the .then block now we can also send the sender and receiver details from here only to the socket.io server that saves our db calls that we are doing in socket.io server backend code for getting the sender and receiver details
@@ -120,7 +120,7 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
                 setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message
             });
 
-            socket.current?.emit("deleteMessage",{msgId:msgid});//emit the delete message event to the socket.io server
+            socket.emit("deleteMessage",{msgId:msgid});//emit the delete message event to the socket.io server
 
             // setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message
 
@@ -134,11 +134,17 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
         setMessage(message+emojiObject.emoji);//append the emoji to the message input
     }
 
+    const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+        if (ev.key === "Enter") {
+            handleSendMessage();
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-white shadow-lg rounded-lg p-6">
             {/* Chat Header */}
             <div className="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-[#814bff] pb-2">
-                Chat with <span className="text-[#814bff] italic">{currentChat?.contactName || "Select a contact"}</span>
+                <span className="ml-8">Chat with</span> <span className="text-[#814bff] italic">{currentChat?.contactName || "Select a contact"}</span>
             </div>
 
             {/* Messages */}
@@ -203,6 +209,7 @@ const ChatWindow = ({ currentChat, socket }: ChatWindowProps) => {
                     type="text"
                     placeholder="Type a message..."
                     value={message}
+                    onKeyDown={handleKeyDown} //what it does is it listens for the keydown event and if the key is enter then it calls the handleSendMessage function
                     onChange={(ev) => setMessage(ev.target.value)}
                     className="flex-1 p-3 bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#814bff]"
                 />

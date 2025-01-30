@@ -5,13 +5,13 @@ import Signin from './pages/Signin';
 import Chat from './pages/Chat';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 //for pop-up alerts in better way we use toastify library:
 // Importing toastify module
 // import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {  ToastContainer } from 'react-toastify';
+import {  toast, ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
 
 function App() {
@@ -27,6 +27,7 @@ function App() {
     
   function AppContent() {
     const location = useLocation();
+    const navigate = useNavigate();
 
     // List of routes where the Navbar should be displayed
     const showNavbar = ['/signup', '/signin','/chat','/'].includes(location.pathname);
@@ -47,7 +48,9 @@ function App() {
             setLoading(false);//set loading to false once the user is fetched
 
           }else{
-            setUser(null);//set the user state to null if there is no user logged in
+            setLoading(false);//set loading to false once the user is fetched
+            navigate("/signin");
+            toast.error("Please sign in to continue",{position:"top-center",autoClose:3000});
           }
         });
       }catch(err){
