@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ContactListProps {
     onSelectingContact: (contact: any) => void;
@@ -9,6 +9,8 @@ interface ContactListProps {
 import {socket} from "../socket";
 
 const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListProps) => { 
+    const [activeUsers,setActiveUsers]=useState<any[]>([]);//store the active users
+
     useEffect(() => {
         try {
             fetch("http://localhost:3000/contacts", {
@@ -21,9 +23,9 @@ const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListPr
                 console.log("Contacts fetched", data);
                 // console.log("Contacts",contacts);
                 setContacts(data.contacts);
-                // setTimeout(()=>{
-                    //     console.log("Contacts",contacts);
-                    // },5000) // update the contacts array with the fetched contacts
+
+                // emit the contactlist of a user to socket.io server and then check if the user is online/active or offline using the userMap in the server which stores the socket id of the active users
+                // socket.emit("activeUsers",{contacts:data.contacts});//emit the contacts list of the user to the server to check if the user is online or offline
             });
 
             // listen for "addContact" event from the server to update the contacts list of the receiver when the sender adds a contact
@@ -32,30 +34,25 @@ const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListPr
             // console.log("Contact added", contacts);
             console.log("Contact added", data.sender);
             setContacts((prevContacts) => [...prevContacts, data.sender]); // Use functional form to update the contacts array with the new contact
-        });                
+            });  
+
+            //listen for activeUsers event from the server to update the contacts list of the user when the user is online or offline              
+            console.log("Socket", socket);  
+            socket.on("activeUsers",(data:any)=>{
+                console.log("Active Users",data);
+                setActiveUsers(data.activeUsers);
+                console.log("Active Users",activeUsers);    
+            });
         
-            
+            return () => {
+                socket.off("activeUsers");
+                socket.off("addedContact");
+            };
         } catch (err) {
             console.log("Error fetching contacts", err);
         }
     }, [socket]);
 
-    // Delete User Account
-    // const handleDeleteUser=()=>{
-    //     fetch("http://localhost:3000/deleteUser",{
-    //         method:"DELETE",
-    //         headers:{
-    //             "Content-Type":"application/json",
-    //         },
-    //         credentials:"include",//send the cookies to the server
-    //     }).then((res)=>res.json()).then((data)=>{
-    //         console.log("Delete User Response",data);
-    //         if(data.message==="User deleted successfully"){
-    //             toast.success("User Deleted Successfully",{position:"top-center",autoClose:3000});
-    //             window.location.href="/signin";//redirect to login page
-    //         }
-    //     })
-    // }
 
     // Helper function to extract first letter from contactName
     const getInitials = (name: string) => {
@@ -85,18 +82,21 @@ const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListPr
                             </div>
                             <div>
                                 <h2 className="text-md font-semibold italic">{contact.contactName}</h2>
+                                {/* show online/offline */}
+                                {/* .some() checks if at least one object in activeUsers has contactuserId matching contact.contactuserId. */}
+                                <p className="text-sm">
+                                    {activeUsers.some(user => user.contactuserId === contact.contactuserId) ? (
+                                        <span className="text-green-500">Online</span>
+                                    ) : (
+                                        <span className="text-gray-400">Offline</span>
+                                    )}
+                                </p>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Delete User Account btn */}
-            {/* <div className="flex justify-center mt-10 ">
-                <button className="bg-gradient-to-r from-[#814bff] to-[#411caf] text-white px-4 py-2 rounded-md shadow-md  hover:scale-105  transition duration-300 cursor-pointer" onClick={handleDeleteUser}>
-                    Delete Account
-                </button>
-            </div> */}
         </div>
     );
 };

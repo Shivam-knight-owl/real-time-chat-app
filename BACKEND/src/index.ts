@@ -321,19 +321,6 @@ app.delete("/deleteMessage",authenticate,async(req:any,res:any)=>{
     }
 });
 
-// delete a user account route
-app.delete("/deleteUser",authenticate,async(req:any,res:any)=>{
-    try{
-        const userId=req.body.userId;//extract the userId from the request body which was added by the authenticate middleware
-        //delete the user account
-        await prisma.user.delete({where:{id:userId}});
-        res.status(200).json({message:"User account deleted successfully"});
-    }
-    catch(err){
-        console.log(err);
-        res.status(500).json({message:"Error deleting user account"});
-    }
-})
 
 //creating userMap to store active users
 const userMap = new Map<string, string>();// to store active users
@@ -368,6 +355,17 @@ io.on("connection", (socket: Socket) => {
 
         //Add the user to the userMap which stores the active users
         userMap.set(userId,socket.id);
+
+        //real time active/online users event: by emitting userMap to all clients(little bad method tho)
+         let activeUsers = Array.from(userMap.keys()).map(userId => ({ // Convert the userMap to an array of objects
+            contactuserId: userId,
+        }));
+       // console.log("Active Users from usermap", activeUsers);
+
+        setTimeout(()=>{
+            io.emit("activeUsers", {activeUsers})
+        },1000); // Emit active users to all clients
+
         console.log("active usersMap",userMap);
 
         //to handle disconnection
@@ -375,6 +373,8 @@ io.on("connection", (socket: Socket) => {
             console.log("User disconnected");
             userMap.delete(socket.data.user);//remove the user from the userMap on disconnection
             console.log("active usersMap after disconnections:",userMap);
+            activeUsers= activeUsers.filter((user:any)=>user.contactuserId!==socket.data.user);//filter out the disconnected user from the activeUsers array
+            io.emit("activeUsers", { activeUsers }); // Emit active users to all clients
         });
 
         //real time messaging
@@ -454,6 +454,12 @@ io.on("connection", (socket: Socket) => {
             const senderUser=await prisma.user.findUnique({where:{id:senderId}});//find the user with the given userId
 
             io.to(userMap.get(contact.contactuserId) || "").emit("addedContact",{sender: {contactUserId:senderId ,contactName:senderUser?.username} });//emit the addedContact event to the receiver contact
+
+            // Emit the activeUsers event to the newly added contact
+            const activeUsers = Array.from(userMap.keys()).map(userId => ({
+                contactuserId: userId,
+            }));
+            io.to(userMap.get(contact.contactuserId) || "").emit("activeUsers", { activeUsers });
         });
     }
     catch(err){

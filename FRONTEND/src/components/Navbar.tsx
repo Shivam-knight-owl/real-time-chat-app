@@ -62,7 +62,7 @@ function Navbar({ setUser }: NavbarProps) {
         {/* Logo */}
         <div className="flex items-center space-x-2 cursor-pointer">
           <FaTelegramPlane size={24} className="text-white" />
-          <Link to={"/"} className="text-2xl font-bold text-white">Chat App</Link>
+          <Link to={"/"} className="text-2xl font-bold text-white">BlinkChat</Link>
         </div>
 
         {/* Desktop Menu (visible on `md` and larger) */}

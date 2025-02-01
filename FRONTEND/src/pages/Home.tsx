@@ -6,7 +6,7 @@ function Home() {
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-[#814bff] to-[#5b33d1] text-white py-12 px-6 shadow-md">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to Chat App</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to BlinkChat</h1>
           <p className="text-lg md:text-xl text-gray-200 mb-6">
             Experience seamless messaging like never before.
           </p>
@@ -75,7 +75,7 @@ function Home() {
 
       {/* Footer */}
       <footer className="bg-[#191919] text-gray-400 text-center py-6">
-        &copy; {new Date().getFullYear()} Chat App. All Rights Reserved.
+        &copy; {new Date().getFullYear()} BlinkChat. All Rights Reserved.
       </footer>
     </div>
   );

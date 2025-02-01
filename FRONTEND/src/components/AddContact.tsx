@@ -38,10 +38,10 @@ const AddContact = ({ setContacts,user }: AddContactProps) => {
                 socket.emit("addedContact",{contact:data.contacts});//emit an event to the server to update the contacts list of the receiver as it should show sender's username in contactlist
             }
             else if(data.found && data.message==="Contact already added"){
-                toast.error("Contact already added",{position:"top-center",autoClose:3000});
+                toast.error("Contact already added",{position:"top-center",autoClose:2000});
             }
             else{
-                toast.error("User not found",{position:"top-center",autoClose:3000});
+                toast.error("User not found",{position:"top-center",autoClose:2000});
             }
 
             setContactUsername("");//clear the input field
@@ -88,7 +88,7 @@ const AddContact = ({ setContacts,user }: AddContactProps) => {
                     onChange={(ev) => setContactUsername(ev.target.value)}
                     className="w-3/4 p-2 text-md text-white bg-gray-700 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#814bff] hover:border-[#814bff] transition duration-300 rounded-lg"
                 />
-                {/* Rounded and bigger "+" button */}
+                {/* "+" button */}
                 <button
                     onClick={handleAddContact}
                     className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#814bff] to-[#411caf] text-white rounded-full hover:bg-[#814bff] transition duration-300 text-lg cursor-pointer"
