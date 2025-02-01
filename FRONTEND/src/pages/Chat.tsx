@@ -40,10 +40,22 @@ const Chat = ({ user }: ChatProps) => {
             console.log("Active Users",activeUsers);    
         });
 
+        // listen for "addContact" event from the server to update the contacts list of the receiver when the sender adds a contact
+        socket.on("addedContact", (data: any) => {
+            // console.log("Contact added", contacts);
+            console.log("Contact added", data.sender);
+            setContacts((prevContacts) => [...prevContacts, data.sender]);// Use functional form to update the contacts array with the new contact
+            setActiveUsers((prevActiveUsers)=>[...prevActiveUsers,data.sender]);//update the active users list when a new contact is added
+            });
         return () => {
             socket.disconnect();
         };
     }, []);
+
+    // Log activeUsers whenever it changes
+    useEffect(() => {
+        console.log("Active Users updated", activeUsers);
+    }, [activeUsers]);
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">

@@ -50,6 +50,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
             console.log("Delete Message Received",msgId);
             setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgId));//filter the messages array to remove the deleted message
         })
+        
 
         return () => {
             socket.off("message"); // Cleanup listener on unmount what it does is it removes the listener for the message event when the component is unmounted
@@ -117,7 +118,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
 
                 toast.success("Message Deleted Successfully",{position:"top-center",autoClose:3000});
 
-                setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message
+                setMessages((prevMessages)=>prevMessages.filter((msg)=>msg.messageId!==msgid));//filter the messages array to remove the deleted message on the sender side but the receiver will still see the message as we are not updating the receiver's messages array here so we need to emit the delete message event to the socket.io server
             });
 
             socket.emit("deleteMessage",{msgId:msgid});//emit the delete message event to the socket.io server

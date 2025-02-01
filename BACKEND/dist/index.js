@@ -331,8 +331,8 @@ io.on("connection", (socket) => {
         }));
         // console.log("Active Users from usermap", activeUsers);
         setTimeout(() => {
-            io.emit("activeUsers", { activeUsers });
-        }, 1000); // Emit active users to all clients
+            io.emit("activeUsers", { activeUsers }); //we use setTimeout to emit the activeUsers event after 100ms to ensure that the user is added to the userMap before emitting the activeUsers event 
+        }, 100); // Emit active users to all clients
         console.log("active usersMap", userMap);
         //to handle disconnection
         socket.on("disconnect", () => {
@@ -408,11 +408,6 @@ io.on("connection", (socket) => {
             const senderId = socket.data.user; //extract the sender's userId from the socket object
             const senderUser = yield prisma.user.findUnique({ where: { id: senderId } }); //find the user with the given userId
             io.to(userMap.get(contact.contactuserId) || "").emit("addedContact", { sender: { contactUserId: senderId, contactName: senderUser === null || senderUser === void 0 ? void 0 : senderUser.username } }); //emit the addedContact event to the receiver contact
-            // Emit the activeUsers event to the newly added contact
-            const activeUsers = Array.from(userMap.keys()).map(userId => ({
-                contactuserId: userId,
-            }));
-            io.to(userMap.get(contact.contactuserId) || "").emit("activeUsers", { activeUsers });
         }));
     }
     catch (err) {

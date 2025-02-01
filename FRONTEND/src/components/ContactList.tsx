@@ -28,21 +28,13 @@ const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: C
                 // socket.emit("activeUsers",{contacts:data.contacts});//emit the contacts list of the user to the server to check if the user is online or offline
             });
 
-            // listen for "addContact" event from the server to update the contacts list of the receiver when the sender adds a contact
-            console.log("Socket", socket);
-            socket.on("addedContact", (data: any) => {
-            // console.log("Contact added", contacts);
-            console.log("Contact added", data.sender);
-            setContacts((prevContacts) => [...prevContacts, data.sender]); // Use functional form to update the contacts array with the new contact
-            });  
-        
-            return () => {
-                socket.off("addedContact");
-            };
         } catch (err) {
             console.log("Error fetching contacts", err);
         }
     }, [socket]);
+
+    console.log("contactlist compo activeuser:",activeUsers);
+    console.log("contactlist compo contacts:",contacts);
 
 
     // Helper function to extract first letter from contactName
@@ -57,7 +49,8 @@ const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: C
                 Your Contacts
             </h1>
             <div className="space-y-4">
-                {contacts.map((contact: any, index: number) => (
+                {
+                contacts.map((contact: any, index: number) => (
                     <div
                         key={index}
                         className="p-2 bg-gray-800 rounded-lg shadow-md cursor-pointer hover:bg-gradient-to-r from-[#814bff] to-[#411caf] hover:scale-105 transition duration-300 transform"
