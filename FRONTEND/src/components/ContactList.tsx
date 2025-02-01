@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface ContactListProps {
     onSelectingContact: (contact: any) => void;
     setContacts: (contacts: any[] | ((prevContacts: any[]) => any[])) => void;
     contacts: any[];
     // socket: any;
+    activeUsers:any[];
 }
 import {socket} from "../socket";
 
-const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListProps) => { 
-    const [activeUsers,setActiveUsers]=useState<any[]>([]);//store the active users
+const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: ContactListProps) => {
 
     useEffect(() => {
         try {
@@ -35,17 +35,8 @@ const ContactList = ({ onSelectingContact, setContacts,contacts }: ContactListPr
             console.log("Contact added", data.sender);
             setContacts((prevContacts) => [...prevContacts, data.sender]); // Use functional form to update the contacts array with the new contact
             });  
-
-            //listen for activeUsers event from the server to update the contacts list of the user when the user is online or offline              
-            console.log("Socket", socket);  
-            socket.on("activeUsers",(data:any)=>{
-                console.log("Active Users",data);
-                setActiveUsers(data.activeUsers);
-                console.log("Active Users",activeUsers);    
-            });
         
             return () => {
-                socket.off("activeUsers");
                 socket.off("addedContact");
             };
         } catch (err) {

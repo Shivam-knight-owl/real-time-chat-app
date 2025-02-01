@@ -15,6 +15,8 @@ const Chat = ({ user }: ChatProps) => {
     const [contacts, setContacts] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar toggle state
 
+    const [activeUsers,setActiveUsers]=useState<any[]>([]);//store the active users moved from contactlist to here as sidebar toggle made the whole children re-render and the active users list was getting reset
+
     useEffect(() => {
         // socket.current = io("http://localhost:3000", {
         //     withCredentials: true,
@@ -29,6 +31,14 @@ const Chat = ({ user }: ChatProps) => {
                 console.log("Connected to the socket.io server");
             });
         }
+
+        //listen for activeUsers event from the server to update the contacts list of the user when the user is online or offline              
+        console.log("Socket", socket);  
+        socket.on("activeUsers",(data:any)=>{
+            console.log("Active Users",data);
+            setActiveUsers(data.activeUsers);
+            console.log("Active Users",activeUsers);    
+        });
 
         return () => {
             socket.disconnect();
@@ -51,6 +61,7 @@ const Chat = ({ user }: ChatProps) => {
                                 onSelectingContact={setCurrentChat}
                                 setContacts={setContacts}
                                 contacts={contacts}
+                                activeUsers={activeUsers}
                             />
                         </div>
                     </div>
