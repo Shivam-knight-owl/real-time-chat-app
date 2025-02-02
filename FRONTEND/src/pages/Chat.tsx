@@ -36,7 +36,7 @@ const Chat = ({ user }: ChatProps) => {
         console.log("Socket", socket);  
         socket.on("activeUsers",(data:any)=>{
             console.log("Active Users",data);
-            setActiveUsers(data.activeUsers);
+            setActiveUsers(()=>[...data.activeUsers,""]);
             console.log("Active Users",activeUsers);    
         });
 
@@ -44,18 +44,19 @@ const Chat = ({ user }: ChatProps) => {
         socket.on("addedContact", (data: any) => {
             // console.log("Contact added", contacts);
             console.log("Contact added", data.sender);
+            setActiveUsers((prevActiveUsers)  =>[...prevActiveUsers,""] );//setActiveUsers when a new contact is added
             setContacts((prevContacts) => [...prevContacts, data.sender]);// Use functional form to update the contacts array with the new contact
-            setActiveUsers((prevActiveUsers)=>[...prevActiveUsers,data.sender]);//update the active users list when a new contact is added
-            });
+
+        });
         return () => {
             socket.disconnect();
+            // socket.off("activeUsers");
+            // socket.off("addedContact");
         };
     }, []);
 
-    // Log activeUsers whenever it changes
-    useEffect(() => {
-        console.log("Active Users updated", activeUsers);
-    }, [activeUsers]);
+    // Log activeUsers whenever it changes;
+    console.log("Active Users updated", activeUsers);
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">

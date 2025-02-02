@@ -4,6 +4,7 @@
   "main": "index.js",
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.8",
     "abbrev": "^1.1.1",
@@ -38,6 +39,7 @@
     "depd": "^2.0.0",
     "destroy": "^1.2.0",
     "detect-libc": "^2.0.3",
+    "dotenv": "^16.4.7",
     "dunder-proto": "^1.0.1",
     "ecdsa-sig-formatter": "^1.0.11",
     "ee-first": "^1.1.1",
