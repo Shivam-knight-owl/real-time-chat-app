@@ -3,6 +3,7 @@ import { FaSmile, FaTelegramPlane,FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
 import  {socket} from "../socket";  
+
 interface ChatWindowProps {
     currentChat: any; // Replace 'any' with the appropriate type
     // socket: any; // Replace 'any' with the appropriate type
@@ -132,7 +133,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
 
     //Handle Emoji Click
     const handleEmojiClick=(emojiObject: any)=>{
-        setMessage(message+emojiObject.emoji);//append the emoji to the message input
+            setMessage((prevMessage) => prevMessage + emojiObject.emoji);
     }
 
     const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -191,41 +192,40 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
             </div>
 
             {/* Input Field */}
-            <div className="flex items-center space-x-3 mt-4">
+            <div className="relative flex items-center space-x-3 mt-4">
                 {/* Emoji picker toggle btn */}
-                <button onClick={()=>{
-                    setShowEmojiPicker(!showEmojiPicker);//toggle the state to show or hide the emoji picker
-                }} className="text-[#814bff] hover:text-[#411caf] focus:outline-none cursor-pointer">
-                    <FaSmile size={30}/>
-                    {/* <FaSmileWink size={30}/> */}
+                <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="text-[#814bff] hover:text-[#411caf] focus:outline-none cursor-pointer relative"
+                >
+                    <FaSmile size={30} />
                 </button>
 
                 {/* Emoji Picker Dropdown */}
                 {showEmojiPicker && (
-                    <div>
-                        <EmojiPicker onEmojiClick={handleEmojiClick}></EmojiPicker>
+                    <div className="absolute bottom-16 left-0 z-10 bg-white shadow-lg rounded-lg">
+                        <EmojiPicker onEmojiClick={handleEmojiClick} />
                     </div>
                 )}
+
                 <input
                     type="text"
                     placeholder="Type a message..."
                     value={message}
-                    onKeyDown={handleKeyDown} //what it does is it listens for the keydown event and if the key is enter then it calls the handleSendMessage function
+                    onKeyDown={handleKeyDown}
                     onChange={(ev) => setMessage(ev.target.value)}
                     className="flex-1 p-3 bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#814bff]"
                 />
+
                 <button
                     onClick={handleSendMessage}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#814bff] to-[#411caf] text-white rounded-lg hover:from-[#6f37f1] hover:to-[#301178] shadow-md transition-all cursor-pointer">
-
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#814bff] to-[#411caf] text-white rounded-lg hover:from-[#6f37f1] hover:to-[#301178] shadow-md transition-all cursor-pointer"
+                >
                     <span>Send</span>
                     <FaTelegramPlane size={20} />
-                    
                 </button>
-
             </div>
         </div>
     );
 };
-
 export default ChatWindow;
