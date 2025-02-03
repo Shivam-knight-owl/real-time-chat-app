@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.signup = void 0;
 const db_1 = require("../db");
-const jwt = require("jsonwebtoken");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); //for creating and verifying tokens
 const bcrypt_1 = __importDefault(require("bcrypt")); //for hashing passwords
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, name, email, password } = req.body;
@@ -38,9 +38,10 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
     });
     // generate a JWT and set it as httpOnly cookie so that it automatically gets sent with every request to the server
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET); // creates a token with the user.id of the user as payload
-    res.cookie(process.env.COOKIE_NAME, token, { httpOnly: true, secure: false, sameSite: 'strict', path: "/", expires: new Date(Date.now() + 24 * 60 * 60 * 1000 * 7) }); // set the token as a cookie
+    const token = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_SECRET || ""); // creates a token with the user.id of the user as payload
+    const cookieName = process.env.COOKIE_NAME || "defaultCookieName";
+    res.cookie(cookieName, token, { httpOnly: true, secure: false, sameSite: 'strict', path: "/", expires: new Date(Date.now() + 24 * 60 * 60 * 1000 * 7) }); // set the token as a cookie
     //console.log(res);
-    res.status(200).json({ message: "User created successfully", user });
+    return res.status(200).json({ message: "User created successfully", user });
 });
 exports.signup = signup;

@@ -1,7 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { prisma } from "../db";
-// const {jwt} = require("jsonwebtoken");//for creating and verifying tokens  
-import jwt from "jsonwebtoken";  
+import jwt, { JwtPayload } from "jsonwebtoken"; //for creating and verifying tokens   
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -24,8 +23,7 @@ export function socketHandler(io:Server){
 
             //verfiy the token to authenticate the user we cant use authenticate middleware here as it is not a route and as in socket.io we dont have req,res objects to pass to the middleware function,instead has socket object
 
-            const decoded=jwt.verify(token,process.env.JWT_SECRET || "");//verify the token
-            //@ts-ignore
+            const decoded=jwt.verify(token,process.env.JWT_SECRET || "") as JwtPayload;//verify the token
             const userId=decoded.userId;//extract the userId from the decoded token
 
             //Add the user to the userMap which stores the active users

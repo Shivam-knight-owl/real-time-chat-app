@@ -1,13 +1,13 @@
-import { Socket } from "socket.io";
+//import { Socket } from "socket.io";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import express from "express";
 import cors from "cors";
-const jwt=require("jsonwebtoken");//for creating and verifying tokens
-const cookieParser = require("cookie-parser"); // used to parse cookies
-import cookie from "cookie"; // used to parse cookies from socket handshake headers
-import bcrypt from "bcrypt";//for hashing passwords
-import {prisma} from "./db";
+//const jwt=require("jsonwebtoken");//for creating and verifying tokens
+import cookieParser from "cookie-parser"; // used to parse cookies
+// import cookie from "cookie"; // used to parse cookies from socket handshake headers
+// import bcrypt from "bcrypt";//for hashing passwords
+// import {prisma} from "./db";
 import { signup } from "./controllers/signup";
 import { signin } from "./controllers/signin";
 import { logout } from "./controllers/logout";

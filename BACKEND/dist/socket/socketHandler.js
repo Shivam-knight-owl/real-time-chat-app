@@ -14,8 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.socketHandler = socketHandler;
 const db_1 = require("../db");
-// const {jwt} = require("jsonwebtoken");//for creating and verifying tokens  
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); //for creating and verifying tokens   
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const cookie_1 = __importDefault(require("cookie"));
@@ -33,7 +32,6 @@ function socketHandler(io) {
             }
             //verfiy the token to authenticate the user we cant use authenticate middleware here as it is not a route and as in socket.io we dont have req,res objects to pass to the middleware function,instead has socket object
             const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || ""); //verify the token
-            //@ts-ignore
             const userId = decoded.userId; //extract the userId from the decoded token
             //Add the user to the userMap which stores the active users
             userMap.set(userId, socket.id);

@@ -24,7 +24,6 @@ function authenticate(req, res, next) {
         //token verification
         try {
             const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || ""); //verify the token
-            //@ts-ignore
             req.body.userId = decoded.userId; //add the userId to the request body for later usage in protected routes
             next();
         }

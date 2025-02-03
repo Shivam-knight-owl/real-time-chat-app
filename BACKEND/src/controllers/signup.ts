@@ -1,8 +1,11 @@
+import { NextFunction, Request, Response } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
 import { prisma } from "../db";
-const jwt=require("jsonwebtoken");
+import jwt, { JwtPayload } from "jsonwebtoken";//for creating and verifying tokens
 import bcrypt from "bcrypt";//for hashing passwords
-export const  signup=async (req:any, res:any) => {
-    
+import { ParsedQs } from "qs";
+
+export const  signup=async ( req: any,res:any) => {
     const { username, name, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10); // await used: it returns a promise that is resolved with the hashed password
 
@@ -25,9 +28,10 @@ export const  signup=async (req:any, res:any) => {
         }
     });
     // generate a JWT and set it as httpOnly cookie so that it automatically gets sent with every request to the server
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET); // creates a token with the user.id of the user as payload
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET||"") as unknown; // creates a token with the user.id of the user as payload
     
-    res.cookie(process.env.COOKIE_NAME, token, { httpOnly: true, secure: false, sameSite: 'strict',path:"/",expires:new Date(Date.now() + 24*60*60*1000*7) }); // set the token as a cookie
+    const cookieName = process.env.COOKIE_NAME || "defaultCookieName";
+    res.cookie(cookieName, token, { httpOnly: true, secure: false, sameSite: 'strict',path:"/",expires:new Date(Date.now() + 24*60*60*1000*7) }); // set the token as a cookie
     //console.log(res);
-    res.status(200).json({ message: "User created successfully", user });
+    return res.status(200).json({ message: "User created successfully", user });
 }

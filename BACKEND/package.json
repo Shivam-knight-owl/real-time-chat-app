@@ -161,6 +161,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8"
   }
 }

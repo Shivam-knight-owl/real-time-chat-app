@@ -13,7 +13,6 @@ function socketAuth(socket, next) {
         return next(new Error("Authentication error")); //if no token found,return an error
     }
     const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || ""); //verify the token
-    //@ts-ignore
     const userId = decoded.userId; //extract the userId from the decoded token
     socket.data.user = userId; //add the userId to the socket object
     next(); //if token found,call the next middleware

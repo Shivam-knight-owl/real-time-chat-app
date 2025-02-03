@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 //middleware for verifying the token to authenticate the user before accessing protected routes
 
 export  async function authenticate(req: any, res:any, next:any) {
@@ -8,8 +8,7 @@ export  async function authenticate(req: any, res:any, next:any) {
     }
     //token verification
     try{
-        const decoded=jwt.verify(token,process.env.JWT_SECRET || "");//verify the token
-        //@ts-ignore
+        const decoded=jwt.verify(token,process.env.JWT_SECRET || "") as JwtPayload;//verify the token
         req.body.userId=decoded.userId;//add the userId to the request body for later usage in protected routes
         next();
     }

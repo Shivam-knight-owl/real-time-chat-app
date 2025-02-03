@@ -3,12 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//import { Socket } from "socket.io";
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const jwt = require("jsonwebtoken"); //for creating and verifying tokens
-const cookieParser = require("cookie-parser"); // used to parse cookies
+//const jwt=require("jsonwebtoken");//for creating and verifying tokens
+const cookie_parser_1 = __importDefault(require("cookie-parser")); // used to parse cookies
+// import cookie from "cookie"; // used to parse cookies from socket handshake headers
+// import bcrypt from "bcrypt";//for hashing passwords
+// import {prisma} from "./db";
 const signup_1 = require("./controllers/signup");
 const signin_1 = require("./controllers/signin");
 const logout_1 = require("./controllers/logout");
@@ -29,7 +33,7 @@ app.use((0, cors_1.default)({
     credentials: true
 }));
 app.use(express_1.default.json()); //middleware to parse json
-app.use(cookieParser()); //middleware to parse cookies
+app.use((0, cookie_parser_1.default)()); //middleware to parse cookies
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         origin: "http://localhost:5173",
