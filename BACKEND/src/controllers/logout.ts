@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 
 export const logout=(req:any, res:any) => {
     //if the user is already logged out,return a message

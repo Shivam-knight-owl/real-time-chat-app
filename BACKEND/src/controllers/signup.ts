@@ -1,9 +1,6 @@
-import { NextFunction, Request, Response } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
 import { prisma } from "../db";
 import jwt, { JwtPayload } from "jsonwebtoken";//for creating and verifying tokens
 import bcrypt from "bcrypt";//for hashing passwords
-import { ParsedQs } from "qs";
 
 export const  signup=async ( req: any,res:any) => {
     const { username, name, email, password } = req.body;

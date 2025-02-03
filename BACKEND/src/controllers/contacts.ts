@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { prisma } from "../db";
 
 export const contacts=async(req:any,res:any)=>{
