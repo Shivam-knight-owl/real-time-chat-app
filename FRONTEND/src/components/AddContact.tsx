@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {socket} from "../socket";
+import { FaUserPlus } from "react-icons/fa";
 interface AddContactProps {
     setContacts: React.Dispatch<React.SetStateAction<any[]>>;
     user: any;
@@ -76,7 +77,7 @@ const AddContact = ({ setContacts,user }: AddContactProps) => {
             </div>
 
             <h2 className="text-lg font-semibold text-white mb-2 text-center">
-                Add Contact
+                Add a Contact
             </h2>
             <div className="flex items-center justify-center space-x-3">
                 
@@ -93,7 +94,7 @@ const AddContact = ({ setContacts,user }: AddContactProps) => {
                     onClick={handleAddContact}
                     className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#814bff] to-[#411caf] text-white rounded-full hover:bg-[#814bff] transition duration-300 text-lg cursor-pointer"
                 >
-                    +
+                    <FaUserPlus />
                 </button>
             </div>
         </div>

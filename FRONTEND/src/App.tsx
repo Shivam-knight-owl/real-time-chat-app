@@ -11,8 +11,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // Importing toastify module
 // import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {  toast, ToastContainer } from 'react-toastify';
+import {  ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
+import { Loading } from './components/Loading';
 
 function App() {
     return (
@@ -38,6 +39,10 @@ function App() {
     //Check authentication status on app load and set the user state accordingly
     useEffect(()=>{
       try{
+        //introduce a fake delay to show the loading screen
+        setTimeout(()=>{
+          setLoading(false);
+        },5000);
         fetch("http://localhost:3000/me",{
           method:"GET",
           credentials:"include" //send the cookies along with the request
@@ -50,7 +55,6 @@ function App() {
           }else{
             setLoading(false);//set loading to false once the user is fetched
             navigate("/signin");
-            toast.error("Please sign in to continue",{position:"top-center",autoClose:3000});
           }
         });
       }catch(err){
@@ -63,7 +67,7 @@ function App() {
     },[]);//empty arr as second arg means this effect will only run once when it first mounts
     
     if (loading) {
-      return <div>Loading...</div>; // Loading screen while checking authentication
+      return <Loading/> // Loading screen while checking authentication
     }
     return (
       <>
