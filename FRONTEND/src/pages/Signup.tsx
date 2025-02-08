@@ -1,6 +1,28 @@
 import { useState } from "react";
+import { motion } from "framer-motion"; // Import Framer Motion
 import { toast } from "react-toastify";
-import { FaEye, FaEyeSlash, FaComment, FaRegCommentDots, FaTelegramPlane, FaSmile, FaCommentAlt, FaCommentDollar, FaCommentDots, FaCommentMedical, FaCommentSlash, FaComments, FaAddressBook, FaAndroid, FaAddressCard, FaApple, FaBasketballBall, FaCoffee, FaFootballBall } from "react-icons/fa"; // Import chat-related icons
+import {
+  FaEye,
+  FaEyeSlash,
+  FaComment,
+  FaRegCommentDots,
+  FaTelegramPlane,
+  FaSmile,
+  FaCommentAlt,
+  FaCommentDollar,
+  FaCommentDots,
+  FaCommentMedical,
+  FaCommentSlash,
+  FaComments,
+  FaAddressBook,
+  FaAndroid,
+  FaAddressCard,
+  FaApple,
+  FaBasketballBall,
+  FaCoffee,
+  FaFootballBall,
+} from "react-icons/fa"; // Import chat-related icons
+
 import { useNavigate } from "react-router-dom";
 
 interface SignupProps {
@@ -14,7 +36,7 @@ function Signup({ setUser }: SignupProps) {
   const [name, setName] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false); // State for password visibility
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   // Chat icons for background (repeated in a 2D matrix)
   const chatIcons = [
@@ -38,6 +60,16 @@ function Signup({ setUser }: SignupProps) {
     FaFootballBall,
   ];
 
+  // Floating animation for each icon (stays in position but floats)
+  const floatingAnimation = {
+    y: [-10, 10, -10], // Move up and down smoothly
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  };
+
   const handleSignup = () => {
     fetch("http://localhost:3000/signup", {
       method: "POST",
@@ -55,8 +87,8 @@ function Signup({ setUser }: SignupProps) {
           toast.error("A user with this email already exists!", { position: "top-center" });
         } else {
           toast.success("Signup successful", { position: "top-center" });
-          //after successfull signup redirect to chat page but since it is protected we need to set the user in the app component to make it accessible to the chat component and then redirect to chat page
-          setUser(data.user.username);//setting the user in the app component
+          // after successful signup redirect to chat page but since it is protected we need to set the user in the app component to make it accessible to the chat component and then redirect to chat page
+          setUser(data.user.username); // setting the user in the app component
           navigate("/chat");
         }
       })
@@ -64,22 +96,20 @@ function Signup({ setUser }: SignupProps) {
   };
 
   return (
-    <div className="bg-[#191919] min-h-screen flex items-center justify-center p-4 relative">
+    <div className="bg-[#191919] min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Chat Icons Section: Repeated in a 2D grid */}
       <div className="absolute top-0 left-0 w-full h-full z-0 grid grid-cols-6 grid-rows-6 gap-4 opacity-80">
         {/* Mapping the icons repeatedly to cover the background */}
-        {Array.from({ length: 36 }).map((_, index) => {// 6x6 grid
+        {Array.from({ length: 36 }).map((_, index) => {
           const Icon = chatIcons[index % chatIcons.length]; // Cycle through the icons
           return (
-            <div
+            <motion.div
               key={index}
               className="flex justify-center items-center"
-              style={{
-                opacity: 0.55, // Subtle opacity
-              }}
+              animate={floatingAnimation} // Apply floating effect
             >
-              <Icon size={28} className="text-[#814bff]" />
-            </div>
+              <Icon size={28} className="text-[#814bff] opacity-50" />
+            </motion.div>
           );
         })}
       </div>
@@ -88,7 +118,7 @@ function Signup({ setUser }: SignupProps) {
         {/* Left Side: Signup Form */}
         <div className="space-y-4 relative">
           <h2 className="text-4xl font-bold text-center text-white mb-6">Signup</h2>
-          
+
           <div className="space-y-4">
             {/* Username Input */}
             <div className="relative">

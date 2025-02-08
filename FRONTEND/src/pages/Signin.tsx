@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash, FaComment, FaRegCommentDots, FaTelegramPlane, FaSmile, FaCommentAlt, FaCommentDollar, FaCommentDots, FaCommentMedical, FaCommentSlash, FaComments, FaAddressBook, FaAndroid, FaAddressCard, FaApple, FaBasketballBall, FaCoffee, FaFootballBall } from "react-icons/fa"; // Import chat-related icons
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface SigninProps {
   setUser: (user: string) => void;
@@ -37,6 +38,16 @@ function Signin({ setUser }: SigninProps) {
     
   ];
 
+  // Floating animation for each icon (stays in position but floats)
+  const floatingAnimation = {
+    y: [-10, 10, -10], // Move up and down smoothly
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  };
+
   const handleSignin=()=>{
     fetch("http://localhost:3000/signin",{
       method:"POST",
@@ -68,15 +79,13 @@ function Signin({ setUser }: SigninProps) {
         {Array.from({ length: 36 }).map((_, index) => {// 6x6 grid
           const Icon = chatIcons[index % chatIcons.length]; // Cycle through the icons
           return (
-            <div
+            <motion.div
               key={index}
               className="flex justify-center items-center"
-              style={{
-                opacity: 0.55, // Subtle opacity
-              }}
+              animate={floatingAnimation} // Apply floating effect
             >
-              <Icon size={28} className="text-[#814bff]" />
-            </div>
+              <Icon size={28} className="text-[#814bff] opacity-50" />
+            </motion.div>
           );
         })}
       </div>
