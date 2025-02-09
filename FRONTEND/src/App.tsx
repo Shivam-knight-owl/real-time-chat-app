@@ -39,16 +39,12 @@ function App() {
     //Check authentication status on app load and set the user state accordingly
     useEffect(()=>{
       try{
-        //introduce a fake delay to show the loading screen
-        setTimeout(()=>{
-          setLoading(false);
-        },5000);
         fetch("http://localhost:3000/me",{
           method:"GET",
           credentials:"include" //send the cookies along with the request
         }).then(res=>res.json()).then(data=>{
           if(data.user){
-            console.log(data.user);
+            //console.log(data.user);
             setUser(data.user.username);//set the user state to the logged in user's info
             setLoading(false);//set loading to false once the user is fetched
 
