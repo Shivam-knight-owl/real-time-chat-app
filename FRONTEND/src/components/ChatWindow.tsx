@@ -3,6 +3,7 @@ import { FaSmile, FaTelegramPlane,FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
 import  {socket} from "../socket";  
+import { motion } from "framer-motion";
 
 interface ChatWindowProps {
     currentChat: any; // Replace 'any' with the appropriate type
@@ -145,47 +146,56 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
     return (
         <div className="flex flex-col h-full bg-white shadow-lg rounded-lg p-6">
             {/* Chat Header */}
-            <div className="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-[#814bff] pb-2">
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-[#814bff] pb-2"
+            >
                 <span className="ml-8">Chat with</span> <span className="text-[#814bff] italic">{currentChat?.contactName || "Select a contact"}</span>
-            </div>
+            </motion.div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                {messages.map((msg: any, index: number) => (
-                    <div
-                        key={index}
-                        className={`relative p-3 rounded-lg max-w-xs shadow-md ${
-                            msg.sender.username === "You"
-                                ? "bg-gradient-to-r from-[#814bff] to-[#411caf] text-white ml-auto"
-                                : "bg-gray-200 text-gray-800"
-                        }`}
-                    >
-                        <p className="text-sm font-semibold">{msg.sender.username}</p>
-                        <p className="text-md mb-4">{msg.text}</p>
-                        {msg.sender.username === "You" ? (
-                            <p className="text-xs font-light italic mt-1 text-white absolute bottom-2 right-2">
-                                {new Date(msg.timestamp).toLocaleString()}
-                            </p>
-                        ) : (
-                            <p className="text-xs font-light italic mt-1 text-gray-700 absolute bottom-2 right-2">
-                                {new Date(msg.timestamp).toLocaleString()}
-                            </p>
-                        )}
-                         
-                        {/* <p className="text-sm">{msg.messageId}</p>  */}
+                
+                    {messages.map((msg: any, index: number) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className={`relative p-3 rounded-lg max-w-xs shadow-md ${
+                                msg.sender.username === "You"
+                                    ? "bg-gradient-to-r from-[#814bff] to-[#411caf] text-white ml-auto"
+                                    : "bg-gray-200 text-gray-800"
+                            }`}
+                        >
+                            <p className="text-sm font-semibold">{msg.sender.username}</p>
+                            <p className="text-md mb-4">{msg.text}</p>
+                            {msg.sender.username === "You" ? (
+                                <p className="text-xs font-light italic mt-1 text-white absolute bottom-2 right-2">
+                                    {new Date(msg.timestamp).toLocaleString()}
+                                </p>
+                            ) : (
+                                <p className="text-xs font-light italic mt-1 text-gray-700 absolute bottom-2 right-2">
+                                    {new Date(msg.timestamp).toLocaleString()}
+                                </p>
+                            )}
 
-                        {/* Delete msg button*/}
-                        {/* pass the msg.id */}
-                        {/* only show the delete button option to sender of the message */}
-                        {msg.sender.username==="You" &&
-                        <button onClick={()=>handleDeleteMessage(msg.messageId)} 
-                        className="absolute flex items-center top-2 right-2 px-2 py-1 text-xs bg-[#ffffff] text-[#814bff]  rounded-sm  hover:bg-black border-0 hover:text-white transition-all cursor-pointer  space-x-1">
-                            <span>Delete</span>
-                            <FaTrash size={14}/>
-                        </button>
-            }
-                    </div>
-                ))}
+                            {/* Delete msg button*/}
+                            {msg.sender.username === "You" && (
+                                <button
+                                    onClick={() => handleDeleteMessage(msg.messageId)}
+                                    className="absolute flex items-center top-2 right-2 px-2 py-1 text-xs bg-[#ffffff] text-[#814bff] rounded-sm hover:bg-black border-0 hover:text-white transition-all cursor-pointer space-x-1"
+                                >
+                                    <span>Delete</span>
+                                    <FaTrash size={14} />
+                                </button>
+                            )}
+                        </motion.div>
+                    ))}
+               
 
                 {/* The ref for scrolling */}
                 <div ref={messagesEndRef} />
@@ -203,7 +213,9 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
 
                 {/* Emoji Picker Dropdown */}
                 {showEmojiPicker && (
-                    <div className="absolute bottom-16 left-0 z-10 bg-white shadow-lg rounded-lg">
+                    <div 
+                        className="absolute bottom-16 left-0 z-10 bg-white shadow-lg rounded-lg"
+                    >
                         <EmojiPicker onEmojiClick={handleEmojiClick} />
                     </div>
                 )}
