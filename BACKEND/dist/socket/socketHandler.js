@@ -43,19 +43,19 @@ function socketHandler(io) {
             setTimeout(() => {
                 io.emit("activeUsers", { activeUsers }); //we use setTimeout to emit the activeUsers event after 100ms to ensure that the user is added to the userMap before emitting the activeUsers event 
             }, 1000); // Emit active users to all clients
-            console.log("active usersMap", userMap);
+            //console.log("active usersMap",userMap);
             //to handle disconnection
             socket.on("disconnect", () => {
-                console.log("User disconnected");
+                // console.log("User disconnected");
                 userMap.delete(socket.data.user); //remove the user from the userMap on disconnection
-                console.log("active usersMap after disconnections:", userMap);
+                //console.log("active usersMap after disconnections:",userMap);
                 activeUsers = activeUsers.filter((user) => user.contactuserId !== socket.data.user); //filter out the disconnected user from the activeUsers array
                 io.emit("activeUsers", { activeUsers }); // Emit active users to all clients
             });
             //real time messaging
             socket.on("message", (data) => __awaiter(this, void 0, void 0, function* () {
-                console.log(data, socket.data);
-                console.log(userMap);
+                // console.log(data,socket.data);
+                // console.log(userMap);
                 const { receiver, msg, msgId, sender } = data;
                 // Prepare the message details to be sent
                 const messageDetailsForSender = {
@@ -90,7 +90,7 @@ function socketHandler(io) {
             }));
             //real time message deletion
             socket.on("deleteMessage", (data) => __awaiter(this, void 0, void 0, function* () {
-                console.log(data);
+                //console.log(data);
                 const { msgId } = data;
                 //finding the receiverId of the message to send the delete message event to the receiver in one db call
                 const message = yield db_1.prisma.message.findUnique({
@@ -105,7 +105,7 @@ function socketHandler(io) {
             }));
             //real time add contact event
             socket.on("addedContact", (data) => __awaiter(this, void 0, void 0, function* () {
-                console.log(data);
+                //console.log(data);
                 const { contact } = data;
                 //we want both id and name of sender user who added the contact to be sent to the receiver/contact
                 //for that we want both id and username of the sender user i.e the current user who added the contact

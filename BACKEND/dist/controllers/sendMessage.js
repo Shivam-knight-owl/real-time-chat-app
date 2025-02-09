@@ -16,8 +16,8 @@ const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // console.log(req.body);
         const { receiver, msg } = req.body;
         const senderId = req.body.userId; //extract the sender's userId from the request body which was added by the authenticate middleware
-        console.log("full req.body", req.body);
-        console.log("Receiver username from req.body:", receiver);
+        // console.log("full req.body",req.body);
+        // console.log("Receiver username from req.body:", receiver);
         const receiverUser = yield db_1.prisma.user.findUnique({ where: { username: receiver } }); //find the user with the given username
         if (!receiverUser) {
             return res.status(404).json({ message: "User not found" }); //if user not found return 404

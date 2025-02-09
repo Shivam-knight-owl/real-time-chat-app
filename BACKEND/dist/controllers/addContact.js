@@ -15,7 +15,7 @@ const addContact = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { contact_username } = req.body; // extract the contact username i.e B from the request body
         const userId = req.body.userId; // extract the userId of A from the request body which was added by the authenticate middleware
-        console.log(`Adding contact: ${contact_username} for user with userId: ${userId}`);
+        //console.log(`Adding contact: ${contact_username} for user with userId: ${userId}`);
         const contact = yield db_1.prisma.user.findUnique({ where: { username: contact_username } }); // find the user with the given username B
         if (!contact) {
             return res.status(404).json({ message: "User not found", found: false }); // if user not found return 404
