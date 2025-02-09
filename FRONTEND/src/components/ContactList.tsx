@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ContactListProps {
     onSelectingContact: (contact: any) => void;
@@ -8,8 +8,24 @@ interface ContactListProps {
     activeUsers:any[];
 }
 import {socket} from "../socket";
+import { FaSearch } from "react-icons/fa";
 
 const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: ContactListProps) => {
+
+    //to search a contact
+    const [searchContact,setSearchContact]=useState<string>("");
+
+    const handleSearchContact = (query: string) => {
+        setSearchContact(query);//update the searchContact state with the query
+    };
+
+    //make a new filteredContacts array to store the contacts that match the search query
+    const filteredContacts = searchContact.trim()
+    ? contacts.filter((contact) =>
+          contact.contactName.toLowerCase().includes(searchContact.toLowerCase())
+      )
+    : contacts; // Show all contacts when search is empty
+    
 
     useEffect(() => {
         try {
@@ -45,12 +61,25 @@ const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: C
 
     return (
         <div className=" text-white p-6 h-full shadow-lg ">
-            <h1 className="text-xl font-semibold text-center mb-6 text-gradient">
+            <h1 className="text-xl font-semibold text-center mb-2 text-gradient">
                 Your Contacts
             </h1>
+            <div className="mb-4 text-center text-sm text-gray-400 w-full flex justify-center items-center ">
+                
+                <input type="text" placeholder="Search Contact" value={searchContact} onChange={(e)=>{
+                    handleSearchContact(e.target.value);
+                }}
+
+                className="w-3/4 text-md text-white bg-gray-700 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#814bff] hover:border-[#814bff] transition duration-300 rounded-md p-2 mx-3"/>
+
+                {/* Search Contact btn */}
+                <button  className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#814bff] to-[#411caf] text-white rounded-full hover:bg-[#814bff] transition duration-300 text-lg cursor-pointer">
+                    <FaSearch className="text-sm"/>
+                </button>
+            </div>
             <div className="space-y-4">
                 {
-                contacts.map((contact: any, index: number) => (
+                filteredContacts.map((contact: any, index: number) => (
                     <div
                         key={index}
                         className="p-2 bg-gray-800 rounded-lg shadow-md cursor-pointer hover:bg-gradient-to-r from-[#814bff] to-[#411caf] hover:scale-105 transition duration-300 transform"
