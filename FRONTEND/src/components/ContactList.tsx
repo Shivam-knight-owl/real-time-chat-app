@@ -29,7 +29,7 @@ const ContactList = ({ onSelectingContact, setContacts,contacts,activeUsers }: C
 
     useEffect(() => {
         try {
-            fetch("http://localhost:3000/contacts", {
+            fetch(import.meta.env.VITE_BACKEND_URL+"/contacts", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

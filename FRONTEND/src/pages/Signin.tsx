@@ -49,7 +49,7 @@ function Signin({ setUser }: SigninProps) {
   };
 
   const handleSignin=()=>{
-    fetch("http://localhost:3000/signin",{
+    fetch(import.meta.env.VITE_BACKEND_URL+"/signin",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",

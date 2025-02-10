@@ -12,7 +12,7 @@ function Navbar({ setUser }: NavbarProps) {
   
     const handleLogout = () => {
       try {
-        fetch("http://localhost:3000/logout", {
+        fetch(import.meta.env.VITE_BACKEND_URL+"/logout", {
           method: "POST",
           credentials: "include",
         })

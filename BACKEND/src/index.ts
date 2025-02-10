@@ -35,7 +35,7 @@ app.use(cookieParser());//middleware to parse cookies
 
 const io = new Server(httpServer, {
     cors: {
-        origin:"http://localhost:5173",
+        origin:["http://localhost:5173","https://183xwbgq-5173.inc1.devtunnels.ms"],
         methods: ["GET", "POST","PUT","DELETE"],
         credentials: true//to allow cookies to be sent along with the request
     }

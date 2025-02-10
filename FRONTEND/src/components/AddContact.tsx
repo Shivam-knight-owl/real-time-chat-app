@@ -20,7 +20,7 @@ const AddContact = ({ setContacts,user }: AddContactProps) => {
             return;
         }
         
-        fetch("http://localhost:3000/addContact",{
+        fetch(import.meta.env.VITE_BACKEND_URL+"/addContact",{
             method:"POST",
             headers:{
                 "Content-Type":"application/json",

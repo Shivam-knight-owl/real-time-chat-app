@@ -39,7 +39,7 @@ function App() {
     //Check authentication status on app load and set the user state accordingly
     useEffect(()=>{
       try{
-        fetch("http://localhost:3000/me",{
+        fetch(import.meta.env.VITE_BACKEND_URL+"/me",{
           method:"GET",
           credentials:"include" //send the cookies along with the request
         }).then(res=>res.json()).then(data=>{

@@ -28,7 +28,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
 
     useEffect(() => {
         // Fetch previous messages for the selected contact
-        fetch(`http://localhost:3000/messages/${currentChat.contactName}`, {
+        fetch(import.meta.env.VITE_BACKEND_URL+`/messages/${currentChat.contactName}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -67,7 +67,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
         try {
             console.log("Receiver:", currentChat?.contactName);
             console.log("Message:", message);
-            fetch("http://localhost:3000/sendMessage", {
+            fetch(import.meta.env.VITE_BACKEND_URL+"/sendMessage", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -108,7 +108,7 @@ const ChatWindow = ({ currentChat }: ChatWindowProps) => {
     //Delete message
     const handleDeleteMessage=(msgid:string)=>{
         try{
-            fetch("http://localhost:3000/deleteMessage",{
+            fetch(import.meta.env.VITE_BACKEND_URL+"/deleteMessage",{
                 method:"DELETE",
                 headers:{
                     "Content-Type":"application/json",

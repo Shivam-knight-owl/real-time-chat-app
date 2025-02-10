@@ -1,6 +1,8 @@
 import {io} from "socket.io-client";
-
-export const socket = io("http://localhost:3000", {
+// import dotenv from "dotenv";
+// dotenv.config()
+console.log(import.meta.env.VITE_BACKEND_URL);
+export const socket = io(import.meta.env.VITE_BACKEND_URL, {
     withCredentials: true,
-    transports: ["websocket"],  
+    // transports: ["websocket"], 
 });
