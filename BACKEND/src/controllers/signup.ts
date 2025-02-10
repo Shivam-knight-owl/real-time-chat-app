@@ -28,7 +28,7 @@ export const  signup=async ( req: any,res:any) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET||"") as unknown; // creates a token with the user.id of the user as payload
     
     const cookieName = process.env.COOKIE_NAME || "defaultCookieName";
-    res.cookie(cookieName, token, { httpOnly: true, secure: false, sameSite: 'strict',path:"/",expires:new Date(Date.now() + 24*60*60*1000*7) }); // set the token as a cookie
+    res.cookie(cookieName, token, { httpOnly: true, secure:true,sameSite:"none",path:"/",expires:new Date(Date.now() + 24*60*60*1000*7) }); // set the token as a cookie
     //console.log(res);
     return res.status(200).json({ message: "User created successfully", user });
 }
