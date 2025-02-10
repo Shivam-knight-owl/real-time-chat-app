@@ -14,7 +14,7 @@ const Chat = ({ user }: ChatProps) => {
     const [currentChat, setCurrentChat] = useState(null);
     const [contacts, setContacts] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar toggle state
-
+    
     const [activeUsers,setActiveUsers]=useState<any[]>([]);//store the active users moved from contactlist to here as sidebar toggle made the whole children re-render and the active users list was getting reset
 
     useEffect(() => {
@@ -26,9 +26,12 @@ const Chat = ({ user }: ChatProps) => {
         }
         if (socket.connected) {
             console.log("Socket is already connected");
+            socket.emit("getActiveUsers");//emit the getActiveUsers event to the server to get the active users list
         } else {
             socket.on("connect", () => {
                 console.log("Connected to the socket.io server");
+                console.log("User", user);
+                socket.emit("getActiveUsers");//emit the getActiveUsers event to the server to get the active users list
             });
         }
 
@@ -48,6 +51,7 @@ const Chat = ({ user }: ChatProps) => {
             setContacts((prevContacts) => [...prevContacts, data.sender]);// Use functional form to update the contacts array with the new contact
 
         });
+    
         return () => {
             socket.disconnect();
             // socket.off("activeUsers");

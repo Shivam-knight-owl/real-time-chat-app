@@ -35,9 +35,9 @@ export function socketHandler(io:Server){
             }));
         // console.log("Active Users from usermap", activeUsers);
 
-            setTimeout(()=>{
-                io.emit("activeUsers", {activeUsers});//we use setTimeout to emit the activeUsers event after 100ms to ensure that the user is added to the userMap before emitting the activeUsers event 
-            },1000); // Emit active users to all clients
+            // setTimeout(()=>{
+            //     io.emit("activeUsers", {activeUsers});//we use setTimeout to emit the activeUsers event after 100ms to ensure that the user is added to the userMap before emitting the activeUsers event 
+            // },1000); // Emit active users to all clients
 
             //console.log("active usersMap",userMap);
 
@@ -47,6 +47,10 @@ export function socketHandler(io:Server){
                 userMap.delete(socket.data.user);//remove the user from the userMap on disconnection
                 //console.log("active usersMap after disconnections:",userMap);
                 activeUsers= activeUsers.filter((user:any)=>user.contactuserId!==socket.data.user);//filter out the disconnected user from the activeUsers array
+                io.emit("activeUsers", { activeUsers }); // Emit active users to all clients
+            });
+
+            socket.on("getActiveUsers",()=>{
                 io.emit("activeUsers", { activeUsers }); // Emit active users to all clients
             });
 
