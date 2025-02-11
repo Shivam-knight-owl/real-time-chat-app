@@ -50,7 +50,7 @@ function App() {
 
           }else{
             setLoading(false);//set loading to false once the user is fetched
-            navigate("/signin");
+            navigate("/");
           }
         });
       }catch(err){

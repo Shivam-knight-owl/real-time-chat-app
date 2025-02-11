@@ -36,7 +36,7 @@ app.use(express_1.default.json()); //middleware to parse json
 app.use((0, cookie_parser_1.default)()); //middleware to parse cookies
 const io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173", "https://183xwbgq-5173.inc1.devtunnels.ms"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true //to allow cookies to be sent along with the request
     }
